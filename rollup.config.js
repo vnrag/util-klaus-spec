@@ -12,7 +12,7 @@ export default [
       sourcemap: false,
       format: 'umd',
       footer: 'module.exports.default = module.exports; \n',
-      external: [...Object.keys(pkg.dependencies), 'lodash.unescape']
+      external: Object.keys(pkg.dependencies)
     },
     plugins: [
       resolve(),
@@ -28,14 +28,14 @@ export default [
         file: pkg.module,
         sourcemap: false,
         format: 'es',
-        external: [...Object.keys(pkg.dependencies), 'lodash.unescape']
+        external: Object.keys(pkg.dependencies)
       },
       {
         name: 'klaus-spec',
         file: pkg.main,
         sourcemap: false,
         format: 'cjs',
-        external: [...Object.keys(pkg.dependencies), 'lodash.unescape']
+        external: Object.keys(pkg.dependencies)
       }
     ],
     plugins: [

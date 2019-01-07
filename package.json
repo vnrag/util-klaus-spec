@@ -6,9 +6,9 @@
   "main": "dist/klaus-spec.cjs.js",
   "module": "dist/klaus-spec.esm.js",
   "browser": "dist/klaus-spec.umd.js",
-  "types": "./dist/klaus-spec.d.ts",
+  "types": "./dist/types/klaus-spec.d.ts",
   "scripts": {
-    "build": "rollup -c",
+    "build": "tsc -p . && rollup -c",
     "dev": "rollup -c -w"
   },
   "repository": {
