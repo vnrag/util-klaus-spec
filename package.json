@@ -66,8 +66,5 @@
   },
   "peerDependencies": {
     "mustache": "^3.x"
-  },
-  "dependencies": {
-    "mustache": "^3.0.1"
   }
 }
