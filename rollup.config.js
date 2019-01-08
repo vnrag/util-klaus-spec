@@ -5,7 +5,7 @@ import pkg from './package.json';
 
 export default {
   input: 'src/index.ts',
-  external: ['mustache'],
+  external: ['mustache', 'he'],
   output: [
     {
       name: 'KlausSpec',
@@ -32,6 +32,7 @@ export default {
     commonjs(),
     babel({
       include: ['src/**/*'],
+      exclude: /node_modules/,
       extensions: ['.js', '.jsx', '.ts', '.tsx']
     })
   ]

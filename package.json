@@ -11,9 +11,9 @@
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
     "build:types": "tsc --emitDeclarationOnly",
-    "build:js": "rollup -c",
+    "build:js": "rollup --config",
     "build": "npm run build:types && npm run build:js",
-    "watch": "rollup -c -w"
+    "watch": "npm run build:js -- --watch --sourcemap inline"
   },
   "repository": {
     "type": "git",
@@ -43,6 +43,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.2.0",
     "@babel/preset-env": "^7.2.3",
     "@babel/preset-typescript": "^7.1.0",
+    "@types/he": "^1.1.0",
     "@types/mustache": "^0.8.32",
     "rollup": "^1.0.1",
     "rollup-plugin-babel": "^4.2.0",
@@ -50,7 +51,8 @@
     "rollup-plugin-node-resolve": "^4.0.0",
     "typescript": "^3.2.2"
   },
-  "peerDependencies": {
-    "mustache": "^3.x"
+  "dependencies": {
+    "he": "^1.2.0",
+    "mustache": "^3.0.1"
   }
 }
