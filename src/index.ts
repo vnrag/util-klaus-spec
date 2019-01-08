@@ -126,7 +126,7 @@ export class ModelQuestion {
 }
 
 export class ModelStep {
-  private _index: number
+  private _index!: number
   readonly id: string
   readonly type: string
   readonly title: string
@@ -221,6 +221,7 @@ export class ModelStepYoutube extends ModelStep {
     // https://www.youtube.com/watch?v=SKUZYdnDJBI
 
     const match = this.url.match(YOUTUBE_REGEX);
+    if (!match) throw Error('Could not detect Youtube Video-ID')
     const url = `https://www.youtube-nocookie.com/embed/${match[1]}?rel=0&amp;showinfo=0`;
 
     return url;

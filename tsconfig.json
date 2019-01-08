@@ -1,24 +1,18 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "esModuleInterop": true,
-    "noUnusedLocals": true,
-    "noImplicitAny": true,
     "declarationDir": "dist/types",
     "declaration": true,
     "target": "esnext",
     "module": "commonjs",
     "moduleResolution": "node",
-    "strict": true,
-    "strictNullChecks": false
+    "strict": true
   },
   "include": [
     "src/**/*"
   ],
   "exclude": [
+    "dist",
     "node_modules"
   ]
 }

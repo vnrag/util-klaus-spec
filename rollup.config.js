@@ -1,45 +1,38 @@
 import resolve from 'rollup-plugin-node-resolve';
-import typescript from 'rollup-plugin-typescript';
+import babel from 'rollup-plugin-babel';
 import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
 
-export default [
-  {
-    input: 'src/index.ts',
-    output: {
+export default {
+  input: 'src/index.ts',
+  external: ['mustache'],
+  output: [
+    {
       name: 'KlausSpec',
       file: pkg.browser,
-      sourcemap: false,
       format: 'umd',
-      footer: 'module.exports.default = module.exports; \n',
-      external: Object.keys(pkg.dependencies)
+      sourcemap: false,
+      footer: 'module.exports.default = module.exports; \n'
     },
-    plugins: [
-      resolve(),
-      commonjs(),
-      typescript()
-    ]
-  },
-  {
-    input: 'src/index.ts',
-    output: [
-      {
-        name: 'klaus-spec',
-        file: pkg.module,
-        sourcemap: false,
-        format: 'es',
-        external: Object.keys(pkg.dependencies)
-      },
-      {
-        name: 'klaus-spec',
-        file: pkg.main,
-        sourcemap: false,
-        format: 'cjs',
-        external: Object.keys(pkg.dependencies)
-      }
-    ],
-    plugins: [
-      typescript()
-    ]
-  }
-];
+    {
+      name: 'klaus-spec',
+      file: pkg.module,
+      sourcemap: false,
+      format: 'es'
+    },
+    {
+      name: 'klaus-spec',
+      file: pkg.main,
+      sourcemap: false,
+      format: 'cjs'
+    }
+  ],
+  plugins: [
+    resolve(),
+    commonjs(),
+    babel({
+      include: ['src/**/*'],
+      extensions: ['.js', '.jsx', '.ts', '.tsx']
+    })
+  ]
+};

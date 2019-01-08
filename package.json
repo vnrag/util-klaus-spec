@@ -8,8 +8,12 @@
   "browser": "dist/klaus-spec.umd.js",
   "types": "./dist/types/klaus-spec.d.ts",
   "scripts": {
-    "build": "tsc -p . && rollup -c",
-    "dev": "rollup -c -w"
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "npm run type-check -- --watch",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:js": "rollup -c",
+    "build": "npm run build:types && npm run build:js",
+    "watch": "rollup -c -w"
   },
   "repository": {
     "type": "git",
@@ -18,51 +22,33 @@
   "author": "",
   "license": "ISC",
   "browserslist": [
-    ">0.2%",
+    ">0.5%",
     "not dead",
     "not ie <= 9",
     "not op_mini all"
   ],
-  "eslintConfig": {
-    "parser": "typescript-eslint-parser",
-    "extends": [
-      "vnr"
+  "babel": {
+    "presets": [
+      "@babel/env",
+      "@babel/preset-typescript"
     ],
-    "rules": {
-      "max-len": "off",
-      "no-console": [
-        "warn",
-        {
-          "allow": [
-            "warn",
-            "error"
-          ]
-        }
-      ]
-    }
+    "plugins": [
+      "@babel/proposal-class-properties",
+      "@babel/proposal-object-rest-spread"
+    ]
   },
-  "eslintIgnore": [
-    "dist/*"
-  ],
   "devDependencies": {
     "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.2.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.2.0",
     "@babel/preset-env": "^7.2.3",
     "@babel/preset-typescript": "^7.1.0",
     "@types/mustache": "^0.8.32",
-    "babel-eslint": "^10.0.1",
-    "eslint": "^5.11.1",
-    "eslint-config-airbnb": "^17.1.0",
-    "eslint-config-vnr": "git+ssh://git@git.vnr-software-solutions.de:web/eslint-config-vnr.git",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-jsx-a11y": "^6.1.2",
-    "eslint-plugin-react": "^7.12.2",
     "rollup": "^1.0.1",
     "rollup-plugin-babel": "^4.2.0",
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-node-resolve": "^4.0.0",
-    "rollup-plugin-typescript": "^1.0.0",
-    "typescript": "^3.2.2",
-    "typescript-eslint-parser": "^21.0.2"
+    "typescript": "^3.2.2"
   },
   "peerDependencies": {
     "mustache": "^3.x"
