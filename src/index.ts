@@ -1,4 +1,5 @@
 import Mustache from 'mustache';
+import he from 'he';
 
 export interface KlausRoot {
   moduleId: string
@@ -58,16 +59,20 @@ function unescape(string: string) {
 }
 
 export class ModelQuestionOption {
-  id: string
+  value: string
   label: string
 
   constructor(json: KlausQuestionOption) {
-    this.id = json.id;
+    this.value = json.id;
     this.label = json.label;
   }
 
-  get value(): string {
-    return this.id
+  get id(): string {
+    return this.value
+  }
+
+  getDecodedLabel(): string {
+    return he.decode(this.label)
   }
 
   static default(): ModelQuestionOption {
@@ -79,13 +84,18 @@ export class ModelQuestionOption {
 }
 
 export class ModelQuestion {
+  private _quiz!: ModelStepQuiz
   readonly type: string
   readonly id: string
   readonly content: string
   readonly solution: string
   readonly options: ModelQuestionOption[]
 
-  constructor(json: KlausQuestion) {
+  constructor(json: KlausQuestion, quiz: ModelStepQuiz) {
+    Object.defineProperty(this, '_quiz', {
+      value: quiz,
+      enumerable: false
+    })
     this.type = json.type;
     this.id = json.id;
     this.content = json.content;
@@ -93,14 +103,12 @@ export class ModelQuestion {
     this.options = json.options ? json.options.map(option => new ModelQuestionOption(option)) : [];
   }
 
-  static default(): ModelQuestion {
-    return new ModelQuestion({
-      id: Math.random().toString(36).substring(7),
-      type: Type.Radio,
-      content: '',
-      solution: '',
-      options: [ModelQuestionOption.default()]
-    })
+  get index(): number {
+    return this._quiz.questions.findIndex(step => step.id === this.id);
+  }
+
+  getDecodedContent(): string {
+    return he.decode(this.content)
   }
 
   getSolutionAsArray(): string[] {
@@ -123,19 +131,37 @@ export class ModelQuestion {
   getIsCorrect(answers: string[]): boolean {
     return this.getScore(answers) === 1;
   }
+
+  static default(quiz: ModelStepQuiz): ModelQuestion {
+    return new ModelQuestion({
+      id: Math.random().toString(36).substring(7),
+      type: Type.Radio,
+      content: '',
+      solution: '',
+      options: [ModelQuestionOption.default()]
+    }, quiz)
+  }
+
+  static fromJSON(json: KlausQuestion, quiz: ModelStepQuiz): ModelQuestion {
+    return new ModelQuestion(json, quiz);
+  }
 }
 
 export class ModelStep {
-  private _index!: number
+  private _model!: Model
   readonly id: string
-  readonly type: string
   readonly title: string
   readonly content: string
+  readonly type: string
   locked: boolean
   navigate: boolean
   readonly theme: string
 
-  constructor(json: KlausStep) {
+  constructor(json: KlausStep, model: Model) {
+    Object.defineProperty(this, '_model', {
+      value: model,
+      enumerable: false
+    })
     this.id = json.id;
     this.type = json.type;
     this.title = json.title;
@@ -145,40 +171,42 @@ export class ModelStep {
     this.theme = json.theme || 'light';
   }
 
-  public get index(): number {
-    return this._index;
+  get index(): number {
+    return this._model.steps.findIndex(step => step.id === this.id);
   }
 
-  public set index(index: number) {
-    if (typeof this.index === 'undefined') {
-      this._index = index
-    }
+  getDecodedTitle(): string {
+    return he.decode(this.title)
   }
 
-  static default(): ModelStep {
+  getDecodedContent(): string {
+    return he.decode(this.content)
+  }
+
+  static default(model: Model): ModelStep {
     return new ModelStep({
       id: Math.random().toString(36).substring(7),
       type: Type.Text,
       title: '',
       content: ''
-    })
+    }, model)
   }
 
-  static fromJSON(json: KlausStep): ModelStep {
+  static fromJSON(json: KlausStep, model: Model): ModelStep {
     switch (json.type) {
       case 'quiz':
-        return new ModelStepQuiz(json);
+        return new ModelStepQuiz(json, model);
       case 'image':
-        return new ModelStepImage(json);
+        return new ModelStepImage(json, model);
       case 'youtube':
-        return new ModelStepYoutube(json);
+        return new ModelStepYoutube(json, model);
       // case 'audio':
-      //   return new ModelStepAudio(json);
+      //   return new ModelStepAudio(json, model);
       case 'text':
       case 'hero':
-        return new ModelStepText(json);
+        return new ModelStepText(json, model);
       default:
-        return new ModelStep(json);
+        return new ModelStep(json, model);
     }
   }
 }
@@ -186,11 +214,11 @@ export class ModelStep {
 export class ModelStepQuiz extends ModelStep {
   readonly questions: ModelQuestion[]
 
-  constructor(json: KlausStep) {
-    super(json);
+  constructor(json: KlausStep, model: Model) {
+    super(json, model);
 
     this.locked = true;
-    this.questions = json.questions ? json.questions.map(question => new ModelQuestion(question)) : [ModelQuestion.default()];
+    this.questions = json.questions ? json.questions.map((question, i) => ModelQuestion.fromJSON(question, this)) : [ModelQuestion.default(this)]
   }
 
   getQuestionsAsCollection(): {[index: string]: ModelQuestion} {
@@ -199,6 +227,10 @@ export class ModelStepQuiz extends ModelStep {
 
       return obj;
     }, {});
+  }
+
+  getQuestionById(id: string): ModelQuestion {
+    return this.questions.filter(question => question.id === id)[0];
   }
 }
 
@@ -238,7 +270,7 @@ export class ModelStepAudio extends ModelStep {
 
 export class ModelStepText extends ModelStep {
   getCompiledContent(params: object = {}): string {
-    return Mustache.render(unescape(this.content), params);
+    return Mustache.render(this.getDecodedContent(), params);
   }
 }
 
@@ -258,11 +290,11 @@ export class Model {
     this.estimatedTime = Number(json.estimatedTime);
     this.allowedAttempts = Number(json.allowedAttempts);
     this.format = json.format || Format.SixteenToNine;
-    this.steps = json.steps ? json.steps.map((step, i) => {
-      const newStep = ModelStep.fromJSON(step)
-      newStep.index = i
-      return newStep
-    }) : []
+    this.steps = json.steps ? json.steps.map((step, i) => ModelStep.fromJSON(step, this)) : [ModelStep.default(this)]
+  }
+
+  getDecodedTitle(): string {
+    return he.decode(this.title)
   }
 
   getStepSize(): number {
@@ -304,15 +336,19 @@ export class Model {
   }
 
   static default(): Model {
-    return new Model({
+    const newModel = new Model({
       title: '',
       moduleId: Math.random().toString(36).substring(7),
       estimatedTime: 30,
       minScore: 60,
       allowedAttempts: 3,
       format: Format.SixteenToNine,
-      steps: [ModelStep.default()]
+      steps: []
     })
+
+    newModel.steps.push(ModelStep.default(newModel))
+
+    return newModel
   }
 
   static fromJSON(json: KlausRoot): Model {
