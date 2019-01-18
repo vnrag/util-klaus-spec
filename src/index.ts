@@ -1,27 +1,35 @@
 import Mustache from 'mustache';
 import he from 'he';
+import React from 'react'
+import semver from 'semver';
+import { Assets, Asset, KlausAsset, AssetType } from './assets'
+export { Assets, Asset, AssetType }
+
+export const VERSION = '1.2';
 
 export interface KlausRoot {
   moduleId: string
+  version: string
   title: string
   minScore: number
   estimatedTime: number
   allowedAttempts: number
-  format?: string
+  format?: Format
   steps: KlausStep[]
+  assets?: KlausAsset[]
 }
 
 export interface KlausStep {
   id: string
-  type: string
+  type: Type
   title: string
   content: string
-  theme?: string
+  theme?: Theme
   questions?: KlausQuestion[]
 }
 
 export interface KlausQuestion {
-  type: string
+  type: Type
   id: string
   content: string
   solution: string
@@ -29,15 +37,29 @@ export interface KlausQuestion {
 }
 
 export interface KlausQuestionOption {
-  id: string
+  value: string
   label: string
+}
+
+export interface MustacheParams {
+  minScore?: number,
+  estimatedTime?: number,
+  score?: number,
+  userId?: string,
+  date?: string,
+  title?: string,
+  success?: boolean,
+  failed?: boolean,
+  results?: string
 }
 
 export enum Type {
   Text = 'text',
+  Hero = 'hero',
   Image = 'image',
   Quiz = 'quiz',
   Youtube = 'youtube',
+  Vimeo = 'vimeo',
   Radio = 'radio',
   Checkbox = 'checkbox'
 }
@@ -45,6 +67,13 @@ export enum Type {
 export enum Format {
   SixteenToNine = '16_9',
   FourToThree = '4_3'
+}
+
+export enum Theme {
+  Light = 'light',
+  Dark = 'dark',
+  Primary = 'primary',
+  Secondary = 'secondary'
 }
 
 export const YOUTUBE_REGEX = /^.*(?:(?:youtu.be\/)|(?:v\/)|(?:\/u\/\w\/)|(?:embed\/)|(?:watch\?))\??v?=?([\w-]{11}).*/;
@@ -63,7 +92,7 @@ export class ModelQuestionOption {
   label: string
 
   constructor(json: KlausQuestionOption) {
-    this.value = json.id;
+    this.value = json.value;
     this.label = json.label;
   }
 
@@ -77,7 +106,7 @@ export class ModelQuestionOption {
 
   static default(): ModelQuestionOption {
     return new ModelQuestionOption({
-      id: Math.random().toString(36).substring(7),
+      value: Math.random().toString(36).substring(2),
       label: ''
     })
   }
@@ -85,7 +114,7 @@ export class ModelQuestionOption {
 
 export class ModelQuestion {
   private _quiz!: ModelStepQuiz
-  readonly type: string
+  readonly type: Type
   readonly id: string
   readonly content: string
   readonly solution: string
@@ -134,7 +163,7 @@ export class ModelQuestion {
 
   static default(quiz: ModelStepQuiz): ModelQuestion {
     return new ModelQuestion({
-      id: Math.random().toString(36).substring(7),
+      id: Math.random().toString(36).substring(2),
       type: Type.Radio,
       content: '',
       solution: '',
@@ -148,27 +177,36 @@ export class ModelQuestion {
 }
 
 export class ModelStep {
-  private _model!: Model
+  protected _model!: Model
   readonly id: string
-  readonly title: string
-  readonly content: string
-  readonly type: string
-  locked: boolean
-  navigate: boolean
-  readonly theme: string
+  title: string
+  content: string
+  readonly type: Type
+  locked!: boolean
+  navigate!: boolean
+  readonly theme: Theme
 
   constructor(json: KlausStep, model: Model) {
     Object.defineProperty(this, '_model', {
       value: model,
       enumerable: false
     })
+    Object.defineProperty(this, 'locked', {
+      value: false,
+      enumerable: false,
+      writable: true
+    })
+    Object.defineProperty(this, 'navigate', {
+      value: true,
+      enumerable: false,
+      writable: true
+    })
+
     this.id = json.id;
     this.type = json.type;
     this.title = json.title;
     this.content = json.content;
-    this.locked = false;
-    this.navigate = true;
-    this.theme = json.theme || 'light';
+    this.theme = json.theme || Theme.Light;
   }
 
   get index(): number {
@@ -185,7 +223,7 @@ export class ModelStep {
 
   static default(model: Model): ModelStep {
     return new ModelStep({
-      id: Math.random().toString(36).substring(7),
+      id: Math.random().toString(36).substring(2),
       type: Type.Text,
       title: '',
       content: ''
@@ -194,16 +232,14 @@ export class ModelStep {
 
   static fromJSON(json: KlausStep, model: Model): ModelStep {
     switch (json.type) {
-      case 'quiz':
+      case Type.Quiz:
         return new ModelStepQuiz(json, model);
-      case 'image':
+      case Type.Image:
         return new ModelStepImage(json, model);
-      case 'youtube':
+      case Type.Youtube:
         return new ModelStepYoutube(json, model);
-      // case 'audio':
-      //   return new ModelStepAudio(json, model);
-      case 'text':
-      case 'hero':
+      case Type.Text:
+      case Type.Hero:
         return new ModelStepText(json, model);
       default:
         return new ModelStep(json, model);
@@ -235,16 +271,27 @@ export class ModelStepQuiz extends ModelStep {
 }
 
 export class ModelStepImage extends ModelStep {
+  constructor(json: KlausStep, model: Model) {
+    super(json, model);
+
+    // Upgrade to Asset Manager model
+    if (!semver.satisfies(<semver.SemVer>semver.coerce(this._model.version), '>=1.2.0')) {
+      const asset = this._model.assets.addFromUrl(this.content);
+      this.content = asset.id;
+    }
+  }
   get url(): string {
-    const url = new URL(this.content)
-    return url.href
+    const asset = this._model.assets.getAssetById(this.content);
+
+    if (asset instanceof Asset) return asset.url
+    return ''
   }
 }
 
 export class ModelStepYoutube extends ModelStep {
   get url(): string {
-    const url = new URL(this.content)
-    return url.href
+    return this.content;
+    // return this._model.assets.getAssetById(this.content).url
   }
 
   get iframeUrl(): string {
@@ -260,37 +307,48 @@ export class ModelStepYoutube extends ModelStep {
   }
 }
 
-// Type Audio is not integrated at this time
-export class ModelStepAudio extends ModelStep {
-  get url(): string {
-    const url = new URL(this.content)
-    return url.href
-  }
-}
-
 export class ModelStepText extends ModelStep {
-  getCompiledContent(params: object = {}): string {
+  quillRef!: React.RefObject<{}>
+
+  constructor(json: KlausStep, model: Model) {
+    super(json, model);
+
+    Object.defineProperty(this, 'quillRef', {
+      value: React.createRef(),
+      enumerable: false
+    })
+  }
+
+  getCompiledContent(params: MustacheParams = {}): string {
     return Mustache.render(this.getDecodedContent(), params);
   }
 }
 
 export class Model {
   moduleId: string
+  version: string
   readonly title: string
   readonly minScore: number
   readonly estimatedTime: number
   readonly allowedAttempts: number
-  readonly format: string
+  readonly format: Format
   readonly steps: ModelStep[]
+  readonly assets: Assets
 
   constructor(json: KlausRoot) {
+    this.version = json.version;
     this.moduleId = json.moduleId;
     this.title = json.title;
     this.minScore = Number(json.minScore);
     this.estimatedTime = Number(json.estimatedTime);
     this.allowedAttempts = Number(json.allowedAttempts);
     this.format = json.format || Format.SixteenToNine;
-    this.steps = json.steps ? json.steps.map((step, i) => ModelStep.fromJSON(step, this)) : [ModelStep.default(this)]
+    this.assets = Assets.fromArray(json.assets);
+    this.steps = json.steps ? json.steps.map((step, i) => ModelStep.fromJSON(step, this)) : [ModelStep.default(this)];
+  }
+
+  stringify(): string {
+    return JSON.stringify(this);
   }
 
   getDecodedTitle(): string {
@@ -317,7 +375,7 @@ export class Model {
     return this.steps.some(step => step instanceof ModelStepQuiz);
   }
 
-  getQuestions(): object {
+  getQuestions(): {[index: string]: ModelQuestion} {
     return this.getQuizzes().reduce((obj, quiz) => Object.assign({}, obj, quiz.getQuestionsAsCollection()), {});
   }
 
@@ -337,8 +395,9 @@ export class Model {
 
   static default(): Model {
     const newModel = new Model({
+      version: VERSION,
       title: '',
-      moduleId: Math.random().toString(36).substring(7),
+      moduleId: Math.random().toString(36).substring(2),
       estimatedTime: 30,
       minScore: 60,
       allowedAttempts: 3,
@@ -352,6 +411,7 @@ export class Model {
   }
 
   static fromJSON(json: KlausRoot): Model {
-    return new Model(json);
+    const model = new Model(json)
+    return model;
   }
 }
