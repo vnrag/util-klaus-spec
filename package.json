@@ -3,17 +3,16 @@
   "private": true,
   "version": "1.0.0",
   "description": "This repository describes the specification of a Klaus module and includes a parser for JSON data.",
-  "main": "dist/klaus-spec.cjs.js",
-  "module": "dist/klaus-spec.esm.js",
-  "browser": "dist/klaus-spec.umd.js",
+  "main": "dist/klaus-spec.js",
   "types": "./dist/types/klaus-spec.d.ts",
+  "typings": "./dist/types/klaus-spec.d.ts",
   "scripts": {
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
     "build:types": "tsc --emitDeclarationOnly",
-    "build:js": "rollup --config",
+    "build:js": "webpack",
     "build": "npm run build:types && npm run build:js",
-    "watch": "npm run build:js -- --watch --sourcemap inline"
+    "watch": "npm run build:js -- --watch"
   },
   "repository": {
     "type": "git",
@@ -22,10 +21,9 @@
   "author": "",
   "license": "ISC",
   "browserslist": [
-    ">0.5%",
-    "not dead",
-    "not ie <= 9",
-    "not op_mini all"
+    "last 2 version",
+    "> 5%",
+    "IE > 9"
   ],
   "babel": {
     "presets": [
@@ -45,14 +43,17 @@
     "@babel/preset-typescript": "^7.1.0",
     "@types/he": "^1.1.0",
     "@types/mustache": "^0.8.32",
-    "rollup": "^1.0.1",
-    "rollup-plugin-babel": "^4.2.0",
-    "rollup-plugin-commonjs": "^9.2.0",
-    "rollup-plugin-node-resolve": "^4.0.0",
-    "typescript": "^3.2.2"
+    "@types/react": "^16.7.18",
+    "@types/semver": "^5.5.0",
+    "babel-loader": "^8.0.5",
+    "typescript": "^3.2.2",
+    "webpack": "^4.28.4",
+    "webpack-cli": "^3.2.1"
   },
   "dependencies": {
     "he": "^1.2.0",
-    "mustache": "^3.0.1"
+    "mustache": "^3.0.1",
+    "react": "^16.7.0",
+    "semver": "^5.6.0"
   }
 }
