@@ -7,6 +7,17 @@ export { Assets, Asset, AssetType }
 
 export const VERSION = '1.2';
 
+export const Snippets = {
+  '{{ date }}': 'Aktuelles Datum und Uhrzeit',
+  '{{ title }}': 'Titel des Elearning Moduls',
+  '{{ userId }}': 'User-ID',
+  '{{ score }}': 'Erreichter Score',
+  '{{ minScore }}': 'Mindest-Score',
+  '{{#success}} {{/success}}': 'Zeigen wenn geschafft',
+  '{{#failed}} {{/failed}}': 'Zeigen wenn nicht geschafft',
+  '{{{ results }}}': 'Ergebnisse'
+}
+
 export interface KlausRoot {
   moduleId: string
   version: string
@@ -307,15 +318,8 @@ export class ModelStepYoutube extends ModelStep {
 }
 
 export class ModelStepText extends ModelStep {
-  quillRef!: React.RefObject<{}>
-
   constructor(json: KlausStep, model: Model) {
     super(json, model);
-
-    Object.defineProperty(this, 'quillRef', {
-      value: React.createRef(),
-      enumerable: false
-    })
   }
 
   getCompiledContent(params: MustacheParams = {}): string {
