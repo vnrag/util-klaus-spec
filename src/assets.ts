@@ -108,7 +108,7 @@ export class Assets {
   }
 
   toJSON() {
-    return JSON.stringify([...this._items]);
+    return [...this._items];
   }
 
   static fromArray(assets: Assets|KlausAsset[] = []): Assets {

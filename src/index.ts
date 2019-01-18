@@ -76,6 +76,9 @@ export enum Theme {
   Secondary = 'secondary'
 }
 
+// https://www.youtube.com/embed/SKUZYdnDJBI
+// https://youtu.be/SKUZYdnDJBI
+// https://www.youtube.com/watch?v=SKUZYdnDJBI
 export const YOUTUBE_REGEX = /^.*(?:(?:youtu.be\/)|(?:v\/)|(?:\/u\/\w\/)|(?:embed\/)|(?:watch\?))\??v?=?([\w-]{11}).*/;
 
 function unescape(string: string) {
@@ -295,10 +298,6 @@ export class ModelStepYoutube extends ModelStep {
   }
 
   get iframeUrl(): string {
-    // https://www.youtube.com/embed/SKUZYdnDJBI
-    // https://youtu.be/SKUZYdnDJBI
-    // https://www.youtube.com/watch?v=SKUZYdnDJBI
-
     const match = this.url.match(YOUTUBE_REGEX);
     if (!match) throw Error('Could not detect Youtube Video-ID')
     const url = `https://www.youtube-nocookie.com/embed/${match[1]}?rel=0&amp;showinfo=0`;
