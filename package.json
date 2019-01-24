@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@git.vnr-software-solutions.de:web/klaus-spec.git"
+    "url": "https://git.vnr-software-solutions.de:web/klaus-spec.git"
   },
   "author": "",
   "license": "ISC",
