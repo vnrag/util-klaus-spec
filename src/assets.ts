@@ -27,7 +27,7 @@ export class Asset {
 
     this.id = id || Math.random().toString(36).substring(2)
     this.type = type;
-    this.url = url
+    this.url = url;
   }
 
   static fromJSON(json: KlausAsset): Asset {
@@ -74,11 +74,9 @@ export class Assets {
     if (assets instanceof Assets) return assets
 
     Object.defineProperty(this, '_items', {
-      value: assets,
+      value: [...assets].map(asset => Asset.fromJSON(asset)),
       enumerable: false
-    })
-
-    this._items = [...assets].map(asset => Asset.fromJSON(asset));
+    });
   }
 
   *[Symbol.iterator]() {
@@ -99,6 +97,10 @@ export class Assets {
     }, {});
   }
 
+  getKeys(): string[] {
+    return Object.keys(this.getAssetsAsCollection());
+  }
+
   addFromUrl(assetUrl: string): Asset {
     const asset = Asset.fromUrl(assetUrl)
 
@@ -107,8 +109,8 @@ export class Assets {
     return asset;
   }
 
-  toJSON() {
-    return [...this._items];
+  toJSON(): Asset[] {
+    return this._items;
   }
 
   static fromArray(assets: Assets|KlausAsset[] = []): Assets {
