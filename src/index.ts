@@ -101,6 +101,10 @@ function unescape(string: string) {
     .replace( /&amp;/g, '&' );
 }
 
+function getRandomString(length: number = 7): string {
+  return [...Array(length)].map(() => (~~(Math.random() * 36)).toString(36)).join('');
+}
+
 export class ModelQuestionOption {
   value: string
   label: string
@@ -120,7 +124,7 @@ export class ModelQuestionOption {
 
   static default(): ModelQuestionOption {
     return new ModelQuestionOption({
-      value: Math.random().toString(36).substring(2),
+      value: getRandomString(),
       label: ''
     })
   }
@@ -177,7 +181,7 @@ export class ModelQuestion {
 
   static default(quiz: ModelStepQuiz): ModelQuestion {
     return new ModelQuestion({
-      id: Math.random().toString(36).substring(2),
+      id: getRandomString(),
       type: Type.Radio,
       content: '',
       solution: '',
@@ -237,7 +241,7 @@ export class ModelStep {
 
   static default(model: Model): ModelStep {
     return new ModelStep({
-      id: Math.random().toString(36).substring(2),
+      id: getRandomString(),
       type: Type.Text,
       title: '',
       content: ''
@@ -400,7 +404,7 @@ export class Model {
     const newModel = new Model({
       version: VERSION,
       title: '',
-      moduleId: Math.random().toString(36).substring(2),
+      moduleId: getRandomString(),
       estimatedTime: 30,
       minScore: 60,
       allowedAttempts: 3,
