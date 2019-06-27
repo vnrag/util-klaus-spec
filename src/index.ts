@@ -1,6 +1,5 @@
 import Mustache from 'mustache';
 import he from 'he';
-import React from 'react'
 import semver from 'semver';
 import { Assets, Asset, KlausAsset, AssetType } from './assets'
 export { Assets, Asset, AssetType }
