@@ -42,7 +42,7 @@ This repository describes the specification of a Klaus module and includes a par
 Install:
 
 ````
-npm i --save git+ssh://git.vnr-software-solutions.de/web/klaus-spec.git
+npm i --save git+ssh://git@github.com:vnrag/util-klaus-spec.git
 ````
 
 Import into project:
