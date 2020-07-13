@@ -91,6 +91,9 @@ export enum Theme {
 // https://www.youtube.com/watch?v=SKUZYdnDJBI
 export const YOUTUBE_REGEX = /^.*(?:(?:youtu.be\/)|(?:v\/)|(?:\/u\/\w\/)|(?:embed\/)|(?:watch\?))\??v?=?([\w-]{11}).*/;
 
+// https://vimeo.com/435640584
+export const VIMEO_REGEX = /^.*(?:vimeo.com)\/(?:channels\/|channels\/\w+\/|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)(?:$|\/|\?)/;
+
 function unescape(string: string) {
   return string.trim()
     .replace( /&quot;/g, '"' )
@@ -255,6 +258,8 @@ export class ModelStep {
         return new ModelStepImage(json, model);
       case Type.Youtube:
         return new ModelStepYoutube(json, model);
+      case Type.Vimeo:
+        return new ModelStepVimeo(json, model);
       case Type.Text:
       case Type.Hero:
         return new ModelStepText(json, model);
@@ -315,6 +320,21 @@ export class ModelStepYoutube extends ModelStep {
     const match = this.url.match(YOUTUBE_REGEX);
     if (!match) throw Error('Could not detect Youtube Video-ID')
     const url = `https://www.youtube-nocookie.com/embed/${match[1]}?rel=0&amp;showinfo=0`;
+
+    return url;
+  }
+}
+
+export class ModelStepVimeo extends ModelStep {
+  get url(): string {
+    return this.content;
+    // return this._model.assets.getAssetById(this.content).url
+  }
+
+  get iframeUrl(): string {
+    const match = this.url.match(VIMEO_REGEX);
+    if (!match) throw Error('Could not detect Vimeo Video-ID')
+    const url = `https://player.vimeo.com/video/${match[1]}?color=ffffff&title=0&byline=0&portrait=0`;
 
     return url;
   }

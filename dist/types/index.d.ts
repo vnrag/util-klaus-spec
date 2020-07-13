@@ -73,6 +73,7 @@ export declare enum Theme {
     Secondary = "secondary"
 }
 export declare const YOUTUBE_REGEX: RegExp;
+export declare const VIMEO_REGEX: RegExp;
 export declare class ModelQuestionOption {
     value: string;
     label: string;
@@ -126,6 +127,10 @@ export declare class ModelStepImage extends ModelStep {
     readonly url: string;
 }
 export declare class ModelStepYoutube extends ModelStep {
+    readonly url: string;
+    readonly iframeUrl: string;
+}
+export declare class ModelStepVimeo extends ModelStep {
     readonly url: string;
     readonly iframeUrl: string;
 }
