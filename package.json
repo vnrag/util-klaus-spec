@@ -45,6 +45,7 @@
     "@types/mustache": "^0.8.32",
     "@types/semver": "^6.2.0",
     "babel-loader": "^8.0.6",
+    "ssri": ">=8.0.1",
     "typescript": "^3.6.4",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10"
